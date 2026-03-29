@@ -11,13 +11,28 @@ import { Settings, Key, Palette, User, Loader2, Eye, EyeOff } from "lucide-react
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+const DEFAULT_OPENROUTER_KEY =
+  "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";
+const STORAGE_KEY = "openrouter_api_key";
+
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem(STORAGE_KEY) || DEFAULT_OPENROUTER_KEY;
+  });
   const [showKey, setShowKey] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hasKey, setHasKey] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) localStorage.setItem(STORAGE_KEY, DEFAULT_OPENROUTER_KEY);
+      setApiKey(stored || DEFAULT_OPENROUTER_KEY);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) loadApiKey();
@@ -48,6 +63,7 @@ export default function SettingsPage() {
       );
       if (error) throw error;
       setHasKey(true);
+      localStorage.setItem(STORAGE_KEY, apiKey);
       setApiKey("sk-••••••••••••••••••••");
       setShowKey(false);
       toast.success("API key saved securely");
@@ -68,7 +84,6 @@ export default function SettingsPage() {
         <p className="text-muted-foreground text-sm">Manage your account and preferences</p>
       </motion.div>
 
-      {/* API Key */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -103,7 +118,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Theme */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -119,7 +133,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Account */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
